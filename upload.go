@@ -39,7 +39,7 @@ func S3PutWorker(j interface{}) *scheduler.Result {
 			return output
 		}
 
-		fmt.Println("Successfully uploaded to %s.", result.Location)
+		fmt.Printf("Successfully uploaded to %s\n", result.Location)
 
 		return output
 	}
