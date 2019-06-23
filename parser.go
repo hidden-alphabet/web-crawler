@@ -1,4 +1,4 @@
-package twittercrawler
+package twittercrawlertask
 
 import (
 	"bytes"
