@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
-	"os"
 )
 
 type S3PutJob struct {
