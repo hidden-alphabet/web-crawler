@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/lambda-labs-13-stock-price-2/aws-s3-storage-task"
 	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
 	"io/ioutil"
 	"net/http"
@@ -72,7 +73,8 @@ func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 	hash := sha256.Sum256(data)
 	key := fmt.Sprintf("%s/%x.html", KEY, hash[:])
 
-	upload := scheduler.NewJob("S3Put", S3PutJob{
+	upload := scheduler.NewJob("S3Put", s3puttask.S3PutJob{
+		Region: "us-west-2",
 		Bucket: BUCKET,
 		Key:    key,
 		File:   data,
