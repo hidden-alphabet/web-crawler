@@ -1,6 +1,7 @@
 package main
 
 import (
+	s3puttask "github.com/lambda-labs-13-stock-price-2/aws-s3-storage-task"
 	scheduler "github.com/lambda-labs-13-stock-price-2/task-scheduler"
 	crawler "github.com/lambda-labs-13-stock-price-2/twitter-advanced-search-crawler-task"
 )
@@ -13,7 +14,7 @@ import (
 func main() {
 	s := scheduler.NewScheduler(true)
 
-	s.Register("S3Put", crawler.S3PutWorker)
+	s.Register("S3Put", s3puttask.S3PutWorker)
 	s.Register("TwitterParse", crawler.TwitterParseWorker)
 	s.Register("TwitterSearch", crawler.TwitterSearchWorker)
 
