@@ -1,9 +1,8 @@
 package main
 
 import (
-	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
-
-	"./crawler"
+	scheduler "github.com/lambda-labs-13-stock-price-2/task-scheduler"
+	crawler "github.com/lambda-labs-13-stock-price-2/twitter-advanced-search-crawler-task"
 )
 
 /*
