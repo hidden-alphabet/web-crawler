@@ -1,4 +1,4 @@
-package s3puttask
+package task
 
 import (
 	"bytes"
