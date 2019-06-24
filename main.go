@@ -2,7 +2,7 @@ package main
 
 import (
 	scheduler "github.com/lambda-labs-13-stock-price-2/task-scheduler"
-	tasks "github.com/lambda-labs-13-stock-price-2/twitter-advanced-search-crawler-task/tasks"
+	tasks "github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
 )
 
 /*
