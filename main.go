@@ -1,8 +1,8 @@
 package main
 
 import (
-	scheduler "github.com/lambda-labs-13-stock-price-2/task-scheduler"
-	tasks "github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
+	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
+	"github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
 )
 
 /*
@@ -26,11 +26,10 @@ func main() {
 	s := scheduler.NewScheduler(true)
 
 	s.Register("S3Put", tasks.S3PutWorker)
-  s.Register("RedisPush", tasks.RedisPush)
 	s.Register("TwitterParse", tasks.TwitterParseWorker)
 	s.Register("TwitterSearch", tasks.TwitterSearchWorker)
 
-	job := scheduler.NewJob("TwitterSearch", crawler.TwitterSearchJob{Query: "bitcoin"})
+	job := scheduler.NewJob("TwitterSearch", tasks.TwitterSearchJob{Query: "bitcoin"})
 
 	go s.Start()
 

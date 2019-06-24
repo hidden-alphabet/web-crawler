@@ -1,4 +1,4 @@
-package task
+package tasks
 
 import (
 	"bytes"
@@ -79,7 +79,7 @@ func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 	hash := sha256.Sum256(data)
 	key := fmt.Sprintf("%s/%x.html", KEY, hash[:])
 
-	upload := scheduler.NewJob("S3Put", s3puttask.S3PutJob{
+	upload := scheduler.NewJob("S3Put", S3PutJob{
 		Region: "us-west-2",
 		Bucket: BUCKET,
 		Key:    key,
@@ -121,8 +121,6 @@ func TwitterParseWorker(j interface{}) *scheduler.Result {
 		Query:       job.Query,
 		MaxPosition: position,
 	})
-
-  r
 
 	output.Jobs = append(output.Jobs, search)
 
