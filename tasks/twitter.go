@@ -1,14 +1,15 @@
-package twittercrawlertask
+package task
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"github.com/PuerkitoBio/goquery"
 	"errors"
 	"fmt"
-	"github.com/lambda-labs-13-stock-price-2/aws-s3-storage-task"
-	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
 )
 
 const (
@@ -23,6 +24,11 @@ const (
 type TwitterSearchJob struct {
 	Query       string
 	MaxPosition *string
+}
+
+type TwitterParseJob struct {
+	HTML  []byte
+	Query string
 }
 
 /*
@@ -87,6 +93,38 @@ func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 
 	output.Jobs = append(output.Jobs, upload)
 	output.Jobs = append(output.Jobs, parse)
+
+	return output
+}
+
+func TwitterParseWorker(j interface{}) *scheduler.Result {
+	output := &scheduler.Result{}
+	position := new(string)
+
+	job, ok := (j).(TwitterParseJob)
+	if !ok {
+		output.Err = errors.New("Unable to coerce job into TwitterParseJob")
+		return output
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(job.HTML))
+	if err != nil {
+		output.Err = err
+		return output
+	}
+
+	if p, ok := doc.Find("div.stream-container").Attr("data-max-position"); ok {
+		*position = p
+	}
+
+	search := scheduler.NewJob("TwitterSearch", TwitterSearchJob{
+		Query:       job.Query,
+		MaxPosition: position,
+	})
+
+  r
+
+	output.Jobs = append(output.Jobs, search)
 
 	return output
 }
