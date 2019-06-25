@@ -8,6 +8,7 @@ import (
 	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
 	"github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -93,6 +94,7 @@ func main() {
 	}
 
 Start:
+	log.Print("Redis became available, connecting.")
 
 	r := redis.NewClient(&redis.Options{
 		Addr: REDIS_ADDR,
@@ -100,7 +102,7 @@ Start:
 
 	_, err := r.Ping().Result()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	w := tasks.WebCrawler{Redis: r, Bucket: BUCKET, Key: KEY}
@@ -110,10 +112,12 @@ Start:
 	s.Register("TwitterParse", w.TwitterParseWorker)
 	s.Register("TwitterSearch", w.TwitterSearchWorker)
 
+	log.Print("Starting scheduler.")
 	go s.Start()
 
 	server := &Server{s}
 
+	log.Print("Starting server.")
 	handler := server.UnwrapSNSNotification(server.HandleSearchRequest)
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":80", nil)
