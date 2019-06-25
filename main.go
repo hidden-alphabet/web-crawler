@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./tasks" // "github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
+	"github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
 	"bytes"
 	"encoding/json"
 	"fmt"
