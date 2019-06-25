@@ -84,10 +84,10 @@ func main() {
 	REDIS_ADDR := fmt.Sprintf("%s:%s", REDIS_HOST, REDIS_PORT)
 
 	for {
-		if conn, err := net.DialTimeout("tcp", REDIS_ADDR, 1*time.Second); conn != nil {
-			if err != nil {
-				panic(err)
-			}
+		log.Print("Waiting for redis to become available.")
+		conn, _ := net.DialTimeout("tcp", REDIS_ADDR, 1*time.Second)
+
+		if conn != nil {
 			conn.Close()
 			goto Start
 		}
