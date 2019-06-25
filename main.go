@@ -83,7 +83,7 @@ func main() {
 	REDIS_ADDR := fmt.Sprintf("%s:%s", REDIS_HOST, REDIS_PORT)
 
 	for {
-		if conn, err := net.DialTimeout("tcp", REDIS_ADDR, 10*time.Second); conn != nil {
+		if conn, err := net.DialTimeout("tcp", REDIS_ADDR, 1*time.Second); conn != nil {
 			if err != nil {
 				panic(err)
 			}
