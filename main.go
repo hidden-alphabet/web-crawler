@@ -116,7 +116,7 @@ Start:
 
 	handler := server.UnwrapSNSNotification(server.HandleSearchRequest)
 	http.HandleFunc("/", handler)
-	http.ListenAndServe(":", nil)
+	http.ListenAndServe(":80", nil)
 
 	<-s.ShouldStop
 }
