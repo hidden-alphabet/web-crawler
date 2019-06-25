@@ -1,15 +1,17 @@
 package main
 
 import (
-	"github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
+	"github.com/lambda-labs-13-stock-price-2/web-crawler/tasks"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -78,11 +80,22 @@ func (s *Server) HandleSearchRequest(w http.ResponseWriter, r *http.Request) {
 func main() {
 	REDIS_HOST := os.Getenv("REDIS_HOST")
 	REDIS_PORT := os.Getenv("REDIS_PORT")
+	REDIS_ADDR := fmt.Sprintf("%s:%s", REDIS_HOST, REDIS_PORT)
+
+	for {
+		if conn, err := net.DialTimeout("tcp", REDIS_ADDR, 10*time.Second); conn != nil {
+			if err != nil {
+				panic(err)
+			}
+			conn.Close()
+			goto Start
+		}
+	}
+
+Start:
 
 	r := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", REDIS_HOST, REDIS_PORT),
-		Password: "",
-		DB:       0,
+		Addr: REDIS_ADDR,
 	})
 
 	_, err := r.Ping().Result()
