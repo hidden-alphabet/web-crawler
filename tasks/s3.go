@@ -17,8 +17,7 @@ type S3PutJob struct {
 	File   []byte
 }
 
-func S3PutWorker(j interface{}) *scheduler.Result {
-
+func (w *WebCrawler) S3PutWorker(j interface{}) *scheduler.Result {
 	output := &scheduler.Result{}
 
 	if job, ok := (j).(S3PutJob); !ok {

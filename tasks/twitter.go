@@ -3,13 +3,14 @@ package tasks
 import (
 	"bytes"
 	"crypto/sha256"
-	"github.com/PuerkitoBio/goquery"
 	"errors"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/go-redis/redis"
+	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"github.com/lambda-labs-13-stock-price-2/task-scheduler"
 )
 
 const (
@@ -17,24 +18,29 @@ const (
 	USERAGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
 		"AppleWebKit/537.36 (KHTML, like Gecko) " +
 		"Chrome/74.0.3729.169 Safari/537.36"
-	BUCKET = "hidden-alphabet"
-	KEY    = "datasets/webpages/raw/twitter.com"
 )
 
+type WebCrawler struct {
+	Redis  *redis.Client
+	Bucket string
+	Key    string
+}
+
+type Query struct {
+	Text string
+}
+
 type TwitterSearchJob struct {
-	Query       string
+	Query       *Query
 	MaxPosition *string
 }
 
 type TwitterParseJob struct {
 	HTML  []byte
-	Query string
+	Query *Query
 }
 
-/*
-  Retrieve HTML from twitter.com/search
-*/
-func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
+func (w *WebCrawler) TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 	output := &scheduler.Result{}
 
 	job, ok := (ctx).(TwitterSearchJob)
@@ -50,14 +56,30 @@ func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 	}
 
 	q := req.URL.Query()
-	q.Add("q", url.QueryEscape(job.Query))
+	q.Add("q", url.QueryEscape(job.Query.Text))
 	q.Add("f", "tweets")
 	q.Add("src", "typd")
 	q.Add("vertical", "default")
 
-	if job.MaxPosition != nil {
-		q.Add("max_position", *job.MaxPosition)
+	if job.MaxPosition == nil {
+		maxPositionHasBeenSet, err := w.Redis.HExists(job.Query.Text, "max_position").Result()
+		if err != nil {
+			output.Err = err
+			return output
+		}
+
+		if maxPositionHasBeenSet {
+			max_position, err := w.Redis.HGet(job.Query.Text, "max_position").Result()
+			if err != nil {
+				output.Err = err
+				return output
+			}
+
+			job.MaxPosition = &max_position
+		}
 	}
+
+	q.Add("max_position", *job.MaxPosition)
 
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("User-Agent", USERAGENT)
@@ -70,6 +92,8 @@ func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 		return output
 	}
 
+	w.Redis.HSet(job.Query.Text, "max_position", *job.MaxPosition)
+
 	data, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		output.Err = err
@@ -77,11 +101,11 @@ func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 	}
 
 	hash := sha256.Sum256(data)
-	key := fmt.Sprintf("%s/%x.html", KEY, hash[:])
+	key := fmt.Sprintf("%s/%x.html", w.Key, hash[:])
 
 	upload := scheduler.NewJob("S3Put", S3PutJob{
 		Region: "us-west-2",
-		Bucket: BUCKET,
+		Bucket: w.Bucket,
 		Key:    key,
 		File:   data,
 	})
@@ -97,7 +121,7 @@ func TwitterSearchWorker(ctx interface{}) *scheduler.Result {
 	return output
 }
 
-func TwitterParseWorker(j interface{}) *scheduler.Result {
+func (w *WebCrawler) TwitterParseWorker(j interface{}) *scheduler.Result {
 	output := &scheduler.Result{}
 	position := new(string)
 
